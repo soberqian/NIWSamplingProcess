@@ -16,7 +16,9 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularMatrixException;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.random.Well19937c;
-
+/***EM algorithm 
+ * @author Qianyang
+ * ****/
 public class Niw_process {
 	public static void main(String args[]){
 		HashMap<String, ArrayList<String>> result = new HashMap<String, ArrayList<String>>();
@@ -53,12 +55,12 @@ public class Niw_process {
 		Hashtable<String, Hashtable<Integer,RealMatrix>> xproduct_product_userfeature = new Hashtable<String, Hashtable<Integer,RealMatrix>>();
 		Hashtable<String, Hashtable<Integer,RealMatrix>> y5score = new Hashtable<String, Hashtable<Integer,RealMatrix>>();
 		for (HashMap.Entry<String, ArrayList<String>> entry : result.entrySet()) {
-			//XÏòÁ¿
+			//Xå‘é‡
 			Hashtable<Integer,List<double[]>> product_userfeature = new Hashtable<Integer,List<double[]>>();
-			//yÏòÁ¿
+			//yå‘é‡
 			Hashtable<Integer,List<Double>> y5score_productlist = new Hashtable<Integer,List<Double>>();
 			for (int i = 0; i < entry.getValue().size(); i++) {
-				//xÏòÁ¿
+				//xå‘é‡
 				if (product_userfeature.containsKey(Integer.parseInt(entry.getValue().get(i).split("\t")[0]))) {
 					List<double[]> userfeatuer = product_userfeature.get(Integer.parseInt(entry.getValue().get(i).split("\t")[0]));
 					userfeatuer.add(StringtoDouble(entry.getValue().get(i).split("\t")[3].split(" ")));
@@ -71,7 +73,7 @@ public class Niw_process {
 					List<double[]> userfeatuer = new ArrayList<double[]>();
 					userfeatuer.add(StringtoDouble(entry.getValue().get(i).split("\t")[3].split(" ")));
 					product_userfeature.put(Integer.parseInt(entry.getValue().get(i).split("\t")[0]), userfeatuer);
-					//yÏòÁ¿
+					//yå‘é‡
 					List<Double> y5socre = new ArrayList<Double>();
 					y5socre.add(Double.valueOf(Double.valueOf(entry.getValue().get(i).split("\t")[2])));
 					y5score_productlist.put(Integer.parseInt(entry.getValue().get(i).split("\t")[0]), y5socre);
@@ -83,30 +85,30 @@ public class Niw_process {
 			Hashtable<Integer,RealMatrix> ymaptoarr = y_arrtoDouble(y5score_productlist);
 			y5score.put(entry.getKey(), ymaptoarr);
 		}
-		//¶¨Òå×ÔÓÉ¶È
+		//å®šä¹‰è‡ªç”±åº¦
 		double df = 10;
 		double b [][] = new double[10][10];
 		for(int i = 0; i < b.length; i++) {
 			b[i][i] = 1;  
 		}
-		//¶¨Òå³ß¶È¾ØÕó
+		//å®šä¹‰å°ºåº¦çŸ©é˜µ
 		RealMatrix x = new Array2DRowRealMatrix(b);
 		Niw_process cc = new Niw_process();
-		//sample from inverse wishart distribution ´Ó  inverse wishartÖĞ²ÉÑù
+		//sample from inverse wishart distribution ä»  inverse wishartä¸­é‡‡æ ·
 		RealMatrix cccc = cc.sampleFromInverseWishartDistribution(df, x);
 		double [] c = new double[10];
 		for (int i = 0; i < c.length; i++) {
 			c[i] = 0;
 		}
 		double [] dd = sampleFromMultivariateDistribution(c,cccc.getData());
-		//mean³õÊ¼ÖµÓÉ¶àÔªÕıÌ«·Ö²¼²ÉÑù
+		//meanåˆå§‹å€¼ç”±å¤šå…ƒæ­£å¤ªåˆ†å¸ƒé‡‡æ ·
 		double [] meaninitial = sampleFromMultivariateDistribution(c,cccc.getData());
-		//covariance input³õÊ¼Öµ
+		//covariance inputåˆå§‹å€¼
 		RealMatrix  spmpling_inverse_wishartinitial = cc.sampleFromInverseWishartDistribution(df, x);
 		//input xmatrix
 		double varianceinitial = 0.2;
 		double epsilon= 0.001;
-		//EMËã·¨
+		//EMç®—æ³•
 		Map<String, Map<Integer, RealMatrix>> one_product_xmatrix = new HashMap<String, Map<Integer, RealMatrix>> ();  
 		for( String str : xproduct_product_userfeature.keySet() ){
 			Map<Integer,RealMatrix > xMatrixList=xproduct_product_userfeature.get(str);
@@ -125,14 +127,14 @@ public class Niw_process {
 	}
 
 	/**EMupdating 
-	 * EMËã·¨µü´ú
+	 * EMç®—æ³•è¿­ä»£
 	 * 
 	 * */
 	static int iter=0;
 	public static Map<Integer, RealMatrix> expectationMaximizationUpdating(double []  meaninitial,RealMatrix spmpling_inverse_wishartinitial,double varianceinitial,Map<Integer,RealMatrix > xMatrixList,Map<Integer,RealMatrix > ymatrix,double epsilon) {
-		//×ÜÌå¾ùÖµ mean input
+		//æ€»ä½“å‡å€¼ mean input
 		double [] mean=meaninitial;
-		//×ÜÌåĞ­·½²î covariance input
+		//æ€»ä½“åæ–¹å·® covariance input
 		RealMatrix   spmpling_inverse_wishart=spmpling_inverse_wishartinitial;
 		//EStep
 		Map<Integer,List<RealMatrix>> edata=CalculateExpectaction(mean,spmpling_inverse_wishart,varianceinitial,xMatrixList,ymatrix);
@@ -148,7 +150,7 @@ public class Niw_process {
 		RealMatrix covarianceupdate=mStepData.getCovarianceupdate();
 		double varianceupdate=mStepData.getVarianceupdate();
 		System.out.println(mStepData.getVarianceupdate());
-		//»ñÈ¡µ¥¸ö²úÆ·µÄw¾ØÕó¼°·½²î¾ØÕó
+		//è·å–å•ä¸ªäº§å“çš„wçŸ©é˜µåŠæ–¹å·®çŸ©é˜µ
 		MStepData wMatrixandvariance=new MStepData();
 		Map<Integer,MStepData > wMatrixandvariancemap=new HashMap<Integer,MStepData >();
 		if (Math.abs(varianceupdate - varianceinitial) < epsilon) {
@@ -174,7 +176,7 @@ public class Niw_process {
 	 * 
 	 * */ 
 	public RealMatrix sampleFromInverseWishartDistribution(double df, RealMatrix scaleMatrix){
-		RealMatrix inverseMatrix = inverseMatrix(scaleMatrix);   // ¼ÆËã³ß¶È¾ØÕóµÄÄæ¾ØÕó
+		RealMatrix inverseMatrix = inverseMatrix(scaleMatrix);   // è®¡ç®—å°ºåº¦çŸ©é˜µçš„é€†çŸ©é˜µ
 		//double a [][] = inverseMatrix.getData();
 		//a = IOUtils.convertMatrixToSymmetry(a);
 		RealMatrix symmetricInverseMatrix = convertMatrixToSymmetry(inverseMatrix);
@@ -182,7 +184,7 @@ public class Niw_process {
 		for (int i = 0; i < 1000; i++) {
 			try {
 				RealMatrix samples = sampleFromWishartDistribution(df, symmetricInverseMatrix);
-				// ÇóÄæ¾ØÕó
+				// æ±‚é€†çŸ©é˜µ
 				RealMatrix inverse_samples = inverseMatrix(samples);
 				RealMatrix symmetric_inverse_samples = convertMatrixToSymmetry(inverse_samples);
 				return symmetric_inverse_samples;
@@ -265,7 +267,7 @@ public class Niw_process {
 
 		RealMatrix BMatrix = new Array2DRowRealMatrix(B);
 		RealMatrix S = cholesky.getL().multiply(BMatrix).multiply(cholesky.getLT());
-		S = IOUtils.convertMatrixToSymmetry(S);  // Èç¹û¾ØÕó²»ÊÇ¶Ô³Æ¾ØÕó,×ª»¯³É¶Ô³Æ¾ØÕó
+		S = IOUtils.convertMatrixToSymmetry(S);  // å¦‚æœçŸ©é˜µä¸æ˜¯å¯¹ç§°çŸ©é˜µ,è½¬åŒ–æˆå¯¹ç§°çŸ©é˜µ
 
 		return S;
 	}
@@ -287,19 +289,19 @@ public class Niw_process {
 		Map<Integer,List<RealMatrix>> weMap=new HashMap<Integer,List<RealMatrix>>();
 		for( int itemnumber : ymatrix.keySet() ){
 			RealMatrix meanmatrix = new Array2DRowRealMatrix(mean);
-			//¼ÆËãÄæ¾ØÕó
+			//è®¡ç®—é€†çŸ©é˜µ
 			RealMatrix inverse_inverse_wishartMatrix = inverseMatrix(spmpling_inverse_wishart);
-			//¼ÆËãx*xµÄºÍ³ıÒÔ·½²î
+			//è®¡ç®—x*xçš„å’Œé™¤ä»¥æ–¹å·®
 			RealMatrix xtransposematrix=xmatrix.get(itemnumber).transpose();
 			RealMatrix xxMatrix=xmatrix.get(itemnumber).preMultiply(xtransposematrix).scalarMultiply(1/variance);
 			RealMatrix inverse_first=inverseMatrix(inverse_inverse_wishartMatrix.add(xxMatrix));
 			RealMatrix second=xmatrix.get(itemnumber).transpose().multiply(ymatrix.get(itemnumber).transpose()).scalarMultiply(1/variance).add(inverse_inverse_wishartMatrix.multiply(meanmatrix));
 			RealMatrix wMatrix=inverse_first.multiply(second);
-			//ÏÂÃæ¶ÔĞ­·½²î¾ØÕó¸üĞÂ½øĞĞ¼ÆËã
+			//ä¸‹é¢å¯¹åæ–¹å·®çŸ©é˜µæ›´æ–°è¿›è¡Œè®¡ç®—
 			RealMatrix covariancematrix=inverseMatrix(inverse_inverse_wishartMatrix.add(xxMatrix));
 			System.out.println("covariancematrix:"+covariancematrix);
 			List<RealMatrix> listRealMatrix=new ArrayList<RealMatrix>();
-			//»ñÈ¡µÄw¼°Ğ­·½²î
+			//è·å–çš„wåŠåæ–¹å·®
 			listRealMatrix.add(wMatrix);
 			listRealMatrix.add(covariancematrix);
 			weMap.put(itemnumber, listRealMatrix);
@@ -326,11 +328,11 @@ public class Niw_process {
 		datamodel.setVarianceupdate(varianceupdate);
 		return datamodel;
 	}
-	//update uw¾ùÖµ
+	//update uwå‡å€¼
 	private static RealMatrix updatew(Map<Integer,RealMatrix > wMatrixList){
-		//suMatrix»á±¨´í
+		//suMatrixä¼šæŠ¥é”™
 		Integer[] keys = wMatrixList.keySet().toArray(new Integer[0]);
-		//È»ááËæ»úÒ»¸ö¼ü£¬ÕÒ³ö¸ÃÖµ
+		//ç„¶å¾Œéšæœºä¸€ä¸ªé”®ï¼Œæ‰¾å‡ºè¯¥å€¼
 		Random random = new Random();
 		System.out.println("wMatrixList:\t"+wMatrixList+"\tkey-random:\t"+random.nextInt(keys.length));
 		Integer randomKey = keys[random.nextInt(keys.length)];
@@ -344,7 +346,7 @@ public class Niw_process {
 	//update covariance 
 	private static RealMatrix updatecovariance(Map<Integer,RealMatrix > wMatrixList,Map<Integer,RealMatrix > covariancematrix,RealMatrix meanmatrixupdate){
 		Integer[] keys = wMatrixList.keySet().toArray(new Integer[0]);
-		//È»ááËæ»úÒ»¸ö¼ü£¬ÕÒ³ö¸ÃÖµ
+		//ç„¶å¾Œéšæœºä¸€ä¸ªé”®ï¼Œæ‰¾å‡ºè¯¥å€¼
 		Random random = new Random();
 		Integer randomKey = keys[random.nextInt(keys.length)];
 		RealMatrix randomMatrix = wMatrixList.get(randomKey);
@@ -375,7 +377,7 @@ public class Niw_process {
 		}
 		return sum/dimension;
 	}
-	//Çó¾ØÕóËùÓĞÔªËØÖ®ºÍ
+	//æ±‚çŸ©é˜µæ‰€æœ‰å…ƒç´ ä¹‹å’Œ
 	private static double sumarray(RealMatrix a){
 		double[][] arr=a.getData();
 		double sum = 0.0; 
@@ -386,7 +388,7 @@ public class Niw_process {
 		} 
 		return sum;
 	}
-	//×Ö·ûĞÍÊı×é×ª»¯ÎªdoubleĞÍÊı×é
+	//å­—ç¬¦å‹æ•°ç»„è½¬åŒ–ä¸ºdoubleå‹æ•°ç»„
 	private static double[] StringtoDouble(String []a){
 
 		double[] ds=new double[a.length];
@@ -395,7 +397,7 @@ public class Niw_process {
 		}
 		return ds;
 	}
-	//½«xmapĞÎÊ½list×ª»¯Îª¾ØÕó
+	//å°†xmapå½¢å¼listè½¬åŒ–ä¸ºçŸ©é˜µ
 	private static Hashtable<Integer, RealMatrix> StringarrtoDouble(Hashtable<Integer,List<double[]>> maplist){
 		Hashtable<Integer,RealMatrix> maparr=new Hashtable<Integer,RealMatrix>();
 		for (HashMap.Entry<Integer, List<double[]>> entry : maplist.entrySet()) {
@@ -408,7 +410,7 @@ public class Niw_process {
 		}
 		return maparr;
 	}
-	//½«ymapĞÎÊ½list×ª»¯Îª¾ØÕó
+	//å°†ymapå½¢å¼listè½¬åŒ–ä¸ºçŸ©é˜µ
 	private static Hashtable<Integer, RealMatrix> y_arrtoDouble(Hashtable<Integer,List<Double>> maplist){
 		Hashtable<Integer,RealMatrix> maparr=new Hashtable<Integer,RealMatrix>();
 		for (HashMap.Entry<Integer, List<Double>> entry : maplist.entrySet()) {
